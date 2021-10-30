@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js"></script> -->
+    <script src="Chart.js"></script>
+    <!-- <script src="jquery.js"></script> -->
+    <script type="text/javascript" src="data.json"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="data.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- <div style="max-width: 200px;max-height: 200px;"> -->
+    <div style="max-width: 50%;max-height:50%;">
+        <canvas id="myChart"></canvas>
+        <script>
+            //  let orderedList=[];   
+            const myData = records;
+            const testType = new Date(2015, 10, 24);
+            console.log(typeof (testType));
+            if (myData && myData.length > 1) {
+                if (typeof (myData[0].x) === String) {
+                    sortDataIfString();
+                } else {
+                    sortData()
+                    fixDatesToStrings()
+                }
+
+
+            } else {
+                console.log("No records found check referance or network...")
+            }
+
+            function sortData() {
+                let i = 0;
+                while (i < myData.length - 1) {
+                    const nextIndex = i + 1;
+                    const currentDate = myData[i].x.getTime();
+                    const nextDate = myData[nextIndex].x.getTime();
+
+                    if (currentDate > nextDate) {
+                        tempItem = myData[i];
+                        myData[i] = myData[nextIndex];
+                        myData[nextIndex] = tempItem;
+                        i = 0;
+                    } else {
+                        i++;
+                    }
+                }
+                console.log("Ordered list: ")
+                console.log(myData)
+            }
+
+            /**if dates in strings compare like so*/
+            function sortDataIfString() {
+                let i = 0;
+                while (i < myData.length - 1) {
+                    const nextIndex = i + 1;
+
+                    const currentDate = Date.parse(myData[i].x);
+                    const nextDate = Date.parse(myData[nextIndex].x);
+
+                    if (currentDate > nextDate) {
+                        tempItem = myData[i];
+                        myData[i] = myData[nextIndex];
+                        myData[nextIndex] = tempItem;
+                        i = 0;
+                    } else {
+                        i++;
+                    }
+                }
+                console.log("Ordered list: ")
+                console.log(myData)
+            }
+
+            //format x axel dates from date format to human like string
+            function fixDatesToStrings() {
+                for (let i1 = 0; i1 < myData.length; i1++) {
+                    const originalDate = myData[i1].x;
+                    let day, month, year;
+                    if (typeof (originalDate) === String) {
+                        // depends on the date format gotten from json
+                        //In this case we will consider this format 'yyyy-MM-ddTHH:mm:ss.sss' and we'll do a split
+                        const onlyDateNoTime = originalDate.split('T')[0].split('-');
+                        day = onlyDateNoTime[2];
+                        month = onlyDateNoTime[1];
+                        year = onlyDateNoTime[0];
+
+                    } else {
+                        day = originalDate.getDate();
+                        month = originalDate.getMonth() + 1;
+                        year = originalDate.getFullYear();
+
+
+                    }
+
+                    const dateStringified = `${day}/${month}/${year}`
+                    console.log(dateStringified)
+                    myData[i1].x = dateStringified
+
+                }
+                console.log(myData)
+
+            }
+
+            //After getting and sorting all the data let's call our document elements
+            $(document).ready(function () {
+                jQuery(function () {
+                    var ctx = $('#myChart')[0].getContext('2d');
+
+                    var myChart = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+
+                            datasets: [{
+                                data: myData,
+                                backgroundColor:
+                                    'rgba(255, 99, 255, 0.2)',
+                                borderColor:
+                                    '#4b4dd8',
+                                borderWidth: 1,
+
+                            }],
+
+                        },
+                        options: {
+                            xAlign: 'center',
+                            parsing: {
+                                xAxisKey: 'x',
+                                yAxisKey: 'y',
+
+                            },
+                            plugins: {
+                                tooltip: {
+
+                                    callbacks: {
+                                        title: function (context) {
+                                            // console.log(context);
+                                            const id = context[0].raw.conDesc;
+
+                                            return id
+                                        },
+                                        label: function (context) {
+                                            console.log(context)
+                                            const item = context.raw;
+                                            const sumValue = item.y >= 1000000 ? `${(item.y / 1000000).toFixed(2)}M` : `${(item.y / 1000).toFixed(2)}K`;
+
+                                            // const newLabel = `${item.conDesc}\n${item.y}`
+                                            return sumValue
+                                        }
+
+                                    }
+                                }
+                            }
+
+
+                        },
+
+                    });
+                })
+                // document.getElementById("#myChart").addEventListner('click', handleClick, false);
+
+            }
+
+            )
+
+
+
+        </script>
+    </div>
+</body>
+
+</html>
